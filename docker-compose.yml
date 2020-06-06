@@ -1,0 +1,33 @@
+version: '3'
+services:
+  # SQL Server: mcr.microsoft.com/mssql/server:2019-latest
+  proget-sql:
+    image: mssql:proget
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=<put_your_password>
+      - MSSQL_PID=Express
+    restart: unless-stopped
+    volumes:
+      - /proget/database:/var/opt/mssql/data
+      - /proget/log:/var/opt/mssql/log
+    networks:
+      - proget
+  # ProGet proget.inedo.com/productimages/inedo/proget:<version>
+  proget:
+    image: proget.inedo.com/productimages/inedo/proget:5.3.2
+    environment:
+      - PROGET_DB_TYPE=SqlServer
+      - SQL_CONNECTION_STRING=Data Source=proget-sql;Initial Catalog=ProGet;User ID=sa;Password=<put_your_password>
+    ports:
+      - 80:80
+    volumes:
+      - /proget/packages:/var/proget/packages
+      - /proget/extensions:/var/proget/extensions
+    restart: unless-stopped
+    networks:
+      - proget
+    depends_on:
+      - proget-sql
+networks:
+  proget:
