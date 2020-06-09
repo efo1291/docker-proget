@@ -5,7 +5,7 @@ services:
     image: mssql:proget
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=<put_your_password>
+      - MSSQL_SA_PASSWORD=L@b12345
       - MSSQL_PID=Express
     restart: unless-stopped
     volumes:
@@ -18,9 +18,9 @@ services:
     image: proget.inedo.com/productimages/inedo/proget:5.3.2
     environment:
       - PROGET_DB_TYPE=SqlServer
-      - SQL_CONNECTION_STRING=Data Source=proget-sql;Initial Catalog=ProGet;User ID=sa;Password=<put_your_password>
+      - SQL_CONNECTION_STRING=Data Source=proget-sql;Initial Catalog=ProGet;User ID=sa;Password=L@b12345
     ports:
-      - 80:80
+      - 80
     volumes:
       - /proget/packages:/var/proget/packages
       - /proget/extensions:/var/proget/extensions
@@ -29,5 +29,25 @@ services:
       - proget
     depends_on:
       - proget-sql
+# Nginx      
+  nginx:
+    image: nginx
+    restart: unless-stopped
+    environment:
+      - TZ=America/Recife
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+      - ./certs/docker01.lab.crt:/etc/ssl/private/docker01.lab.crt
+      - ./certs/docker01.lab.key:/etc/ssl/private/docker01.lab.key
+    depends_on:
+      - proget
+      - proget-sql
+    networks:
+      - proget
+
+# Network      
 networks:
   proget:
